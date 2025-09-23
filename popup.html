@@ -1,96 +1,478 @@
+Front end:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>VeritasAI Detector</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f8f8;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #333;
-    }
-    textarea {
-      width: 100%;
-      height: 80px;
-      padding: 8px;
-      font-size: 14px;
-      resize: vertical;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #4caf50;
-      color: white;
-      font-size: 14px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    #result {
-      margin-top: 15px;
-      font-weight: bold;
-      color: #333;
-    }
-    .error {
-      color: red;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERITAS AI - Truth Verifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 380px;
+            min-height: 500px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.95));
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            margin: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ffff, #00cccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #a0a0a0;
+            font-weight: 500;
+        }
+
+        .input-section {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: rgba(40, 40, 40, 0.8);
+            color: #e0e0e0;
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2), 0 0 20px rgba(0, 255, 255, 0.1);
+            background: rgba(50, 50, 50, 0.9);
+        }
+
+        .input-textarea::placeholder {
+            color: #888;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .check-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3), 0 0 20px rgba(142, 68, 173, 0.1);
+        }
+
+        .check-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.4), 0 0 30px rgba(142, 68, 173, 0.2);
+            background: linear-gradient(135deg, #9b59b6, #a569bd);
+        }
+
+        .check-button:active {
+            transform: translateY(0);
+        }
+
+        .check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 16px 0;
+            color: #00ffff;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top: 2px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .result.verified {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 200, 200, 0.1));
+            border-left: 4px solid #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .result.unverified {
+            background: linear-gradient(135deg, rgba(255, 80, 80, 0.1), rgba(255, 60, 60, 0.1));
+            border-left: 4px solid #ff5050;
+            color: #ff8080;
+            box-shadow: 0 0 20px rgba(255, 80, 80, 0.1);
+        }
+
+        .result.partial {
+            background: linear-gradient(135deg, rgba(255, 200, 0, 0.1), rgba(255, 170, 0, 0.1));
+            border-left: 4px solid #ffcc00;
+            color: #ffdd44;
+            box-shadow: 0 0 20px rgba(255, 200, 0, 0.1);
+        }
+
+        .result-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-icon {
+            font-size: 18px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(50, 50, 50, 0.5);
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .sources {
+            margin-top: 12px;
+            font-size: 12px;
+        }
+
+        .source-link {
+            color: #00ffff;
+            text-decoration: none;
+            margin-right: 8px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .quick-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #444;
+            background: rgba(40, 40, 40, 0.8);
+            color: #e0e0e0;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover {
+            background: rgba(60, 60, 60, 0.9);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <h1>VeritasAI Detector</h1>
-  <textarea id="inputText" placeholder="Enter text to detect..."></textarea>
-  <button id="detectBtn">Detect</button>
-  <div id="result">Detection result: <span id="output">-</span></div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">VERITAS AI</div>
+            <div class="subtitle">AI-Powered Truth Verification</div>
+        </div>
 
-  <script>
-    document.getElementById("detectBtn").addEventListener("click", async () => {
-      const input = document.getElementById("inputText").value.trim();
-      const output = document.getElementById("output");
+        <div class="input-section">
+            <label class="input-label" for="factInput">Enter the statement you'd like to verify:</label>
+            <textarea 
+                id="factInput" 
+                class="input-textarea" 
+                placeholder="Paste the fact, claim, or statement you want to check here. For example: 'The Great Wall of China is visible from space' or 'Honey never spoils'..."
+                maxlength="1000"
+            ></textarea>
+            <div class="char-count" id="charCount">0 / 1000</div>
+        </div>
 
-      if (!input) {
-        output.textContent = "Please enter some text.";
-        output.classList.add("error");
-        return;
-      }
+        <button class="check-button" id="checkButton">
+            🔍 Verify Fact
+        </button>
 
-      output.textContent = "Detecting...";
-      output.classList.remove("error");
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Checking against verified databases...</span>
+        </div>
 
-      try {
-        const response = await fetch("http://127.0.0.1:8001/detect", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: input }),
+        <div class="result" id="result">
+            <div class="result-header">
+                <span class="result-icon" id="resultIcon"></span>
+                <span id="resultTitle"></span>
+            </div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            <div id="resultText"></div>
+            <div class="sources" id="sources"></div>
+        </div>
+
+        <div class="quick-actions" id="quickActions" style="display: none;">
+            <button class="quick-btn" onclick="reportIssue()">📝 Report Issue</button>
+            <button class="quick-btn" onclick="shareResult()">📤 Share</button>
+            <button class="quick-btn" onclick="clearResult()">🔄 New Check</button>
+        </div>
+
+        <div class="footer">
+            Powered by RAG-based verification system
+        </div>
+    </div>
+
+    <script>
+        const factInput = document.getElementById('factInput');
+        const charCount = document.getElementById('charCount');
+        const checkButton = document.getElementById('checkButton');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const quickActions = document.getElementById('quickActions');
+
+        // Character counter
+        factInput.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = `${count} / 1000`;
+            
+            checkButton.disabled = count < 10;
+            
+            if (count > 900) {
+                charCount.style.color = '#ff5050';
+            } else if (count > 800) {
+                charCount.style.color = '#ffcc00';
+            } else {
+                charCount.style.color = '#888';
+            }
         });
 
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
+        // Main fact checking function
+        checkButton.addEventListener('click', async function() {
+            const fact = factInput.value.trim();
+            if (!fact || fact.length < 10) return;
+
+            // Show loading state
+            checkButton.disabled = true;
+            loading.style.display = 'flex';
+            result.style.display = 'none';
+            quickActions.style.display = 'none';
+
+            try {
+                // Simulate API call to your RAG backend
+                const response = await checkFact(fact);
+                displayResult(response);
+            } catch (error) {
+                displayError('Unable to verify at this time. Please try again.');
+            } finally {
+                loading.style.display = 'none';
+                checkButton.disabled = false;
+            }
+        });
+
+        // Simulate fact checking API call
+        async function checkFact(fact) {
+            // Replace this with actual API call to your RAG backend
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Mock response - replace with actual API integration
+                    const mockResponse = generateMockResponse(fact);
+                    resolve(mockResponse);
+                }, 2000);
+            });
         }
 
-        const data = await response.json();
-        if (data.result !== undefined) {
-          output.textContent = data.result ? "AI-generated text detected ✅" : "Human-written text detected 📝";
-        } else {
-          output.textContent = "Invalid response from server.";
-          output.classList.add("error");
+        // Generate mock response for demo
+        function generateMockResponse(fact) {
+            const responses = [
+                {
+                    status: 'verified',
+                    confidence: 92,
+                    title: 'Fact Verified',
+                    text: 'This statement has been cross-referenced with multiple reliable sources and appears to be accurate.',
+                    sources: ['Wikipedia', 'Britannica', 'Scientific American']
+                },
+                {
+                    status: 'unverified',
+                    confidence: 15,
+                    title: 'Likely False',
+                    text: 'Our databases suggest this statement is inaccurate or misleading. Multiple contradictory sources found.',
+                    sources: ['Snopes', 'FactCheck.org', 'Reuters Fact Check']
+                },
+                {
+                    status: 'partial',
+                    confidence: 68,
+                    title: 'Partially Accurate',
+                    text: 'This statement contains some truth but lacks important context or has misleading elements.',
+                    sources: ['AP News', 'BBC Reality Check']
+                }
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
         }
-      } catch (error) {
-        output.textContent = `Error: ${error.message}`;
-        output.classList.add("error");
-      }
-    });
-  </script>
+
+        // Display verification result
+        function displayResult(response) {
+            result.className = `result ${response.status}`;
+            result.style.display = 'block';
+            
+            const icons = {
+                verified: '✅',
+                unverified: '❌', 
+                partial: '⚠️'
+            };
+            
+            document.getElementById('resultIcon').textContent = icons[response.status];
+            document.getElementById('resultTitle').textContent = response.title;
+            document.getElementById('resultText').textContent = response.text;
+            
+            // Animate confidence bar
+            const confidenceFill = document.getElementById('confidenceFill');
+            const colors = {
+                verified: '#00ffff',
+                unverified: '#ff5050',
+                partial: '#ffcc00'
+            };
+            
+            confidenceFill.style.backgroundColor = colors[response.status];
+            setTimeout(() => {
+                confidenceFill.style.width = `${response.confidence}%`;
+            }, 100);
+            
+            // Show sources
+            const sourcesDiv = document.getElementById('sources');
+            if (response.sources && response.sources.length > 0) {
+                sourcesDiv.innerHTML = `Sources: ${response.sources.map(source => 
+                    `<a href="#" class="source-link">${source}</a>`
+                ).join('')}`;
+            }
+            
+            quickActions.style.display = 'flex';
+        }
+
+        function displayError(message) {
+            result.className = 'result unverified';
+            result.style.display = 'block';
+            document.getElementById('resultIcon').textContent = '⚠️';
+            document.getElementById('resultTitle').textContent = 'Error';
+            document.getElementById('resultText').textContent = message;
+        }
+
+        // Quick action functions
+        function reportIssue() {
+            alert('Report feature would open a feedback form');
+        }
+
+        function shareResult() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'VERITAS AI Verification Result',
+                    text: `Fact checked: "${factInput.value.substring(0, 100)}..."`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers without Web Share API
+                navigator.clipboard.writeText(`Verified with VERITAS AI: "${factInput.value}"`);
+                alert('Result copied to clipboard!');
+            }
+        }
+
+        function clearResult() {
+            factInput.value = '';
+            result.style.display = 'none';
+            quickActions.style.display = 'none';
+            charCount.textContent = '0 / 1000';
+            charCount.style.color = '#888';
+            checkButton.disabled = true;
+            factInput.focus();
+        }
+
+        // Auto-focus on input when popup opens
+        factInput.focus();
+    </script>
 </body>
 </html>
